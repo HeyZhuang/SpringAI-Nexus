@@ -1,31 +1,31 @@
-🚀 Spring AI MCP Nexus (RAG + Agent + Search)
-基于 Spring AI 1.0 & Spring Boot 3.5 构建的下一代 AI 智能体架构演示。 集成 RAG 知识库、MCP 工具协议、SearXNG 联网搜索与 SSE 流式对话，展示了企业级 AI 应用的全链路实现。
+# 🚀 Spring AI MCP Nexus (RAG + Agent + Search)
 
-🏗 系统架构 (System Architecture)
-本项目采用双模块后端 + 静态前端的分层架构，清晰地分离了“智能决策层”与“工具服务层”。
+> **基于 Spring AI 1.0 & Spring Boot 3.5 构建的下一代 AI 智能体架构演示。**
 
-Code snippet
+本项目集成 **RAG 知识库**、**MCP 工具协议**、**SearXNG 联网搜索**与 **SSE 流式对话**，展示了企业级 AI 应用的全链路实现。
 
+---
+
+## 🏗 系统架构 (System Architecture)
+
+本项目采用 **双模块后端 + 静态前端** 的分层架构，清晰地分离了“智能决策层”与“工具服务层”。
+
+```mermaid
 graph TD
-    User[用户 (Frontend)] -- SSE / HTTP --> Client[MCP Client (智能决策层)]
+    User["用户 (Frontend)"] -- SSE / HTTP --> Client["MCP Client (智能决策层)"]
     
     subgraph "Core Logic (mcp-client)"
-        Client -- 1. 聊天/推理 --> LLM[OpenAI / Compatible Model]
-        Client -- 2. 向量检索 --> Redis[Redis Vector Store]
-        Client -- 3. 联网搜索 --> SearXNG[SearXNG Engine]
+        Client -- 1. 聊天/推理 --> LLM["OpenAI / Compatible Model"]
+        Client -- 2. 向量检索 --> Redis["Redis Vector Store"]
+        Client -- 3. 联网搜索 --> SearXNG["SearXNG Engine"]
     end
     
     subgraph "Tool Services (mcp-server)"
-        Client -- 4. MCP工具调用 --> Server[MCP Server (工具服务层)]
-        Server -- CRUD --> MySQL[(MySQL Product DB)]
-        Server -- SMTP --> Email[Email Service]
+        Client -- 4. MCP工具调用 --> Server["MCP Server (工具服务层)"]
+        Server -- CRUD --> MySQL["MySQL Product DB"]
+        Server -- SMTP --> Email["Email Service"]
     end
-🧩 模块说明
-mcp-client (Brain): 智能体入口。负责维护会话上下文 (Memory)、决策是否调用工具、执行 RAG 检索流程以及聚合联网搜索结果。
 
-mcp-server (Tools): 标准化工具服务。基于 MCP 协议暴露原子能力（如：发邮件、查商品），与 LLM 解耦。
-
-spring-ai-frontend: 纯静态交互界面。演示了如何通过 EventSource (SSE) 消费后端的流式数据。
 
 ✨ 核心亮点 (Key Features)
 1. 🧠 强大的 RAG 知识检索
@@ -134,23 +134,21 @@ mvn spring-boot:run -Dspring-boot.run.profiles=dev
 🎯 面试官关注点 (Interview Cheat Sheet)
 如果你在面试中展示此项目，建议重点阐述以下设计思想：
 
-架构解耦：
-
+架构解耦
 话术：“我将工具执行（MCP Server）与逻辑推理（MCP Client）分离，这符合微服务架构思想。未来如果需要接入 Python 编写的工具或扩展更多业务，只需在 Server 端新增，Client 端无需重构。”
 
-RAG 落地细节：
-
+RAG 落地细节
 话术：“在处理 RAG 时，我使用了 Redis 作为向量库，因为它读写极快。我实现了完整的‘切片-向量化-存储-召回’闭环，并在 Prompt 中做了防幻觉处理（查不到即返回‘不知道’）。”
 
-联网搜索增强：
-
+联网搜索增强
 话术：“针对模型知识滞后的问题，我整合了 SearXNG。通过 API 获取实时信息后，我并不是直接扔给用户，而是将其作为 Context 喂给模型，让模型用自然语言总结后再输出。”
 
-Java 生态的 AI 优势：
-
+Java 生态的 AI 优势
 话术：“相比于 Python (LangChain)，Spring AI 让 Java 开发者能利用现有的 Spring 生态（如 Bean 管理、AOP、事务控制）快速构建企业级 AI 应用，这个项目就是最好的证明。”
 
 🤝 贡献 (Contribution)
 欢迎提交 Issue 和 PR！
 
-Author: HeyZhuang License: MIT
+Author: HeyZhuang
+
+License: MIT
