@@ -1,0 +1,43 @@
+spring:
+  application:
+    name: spring-ai-mcp-server
+  profiles:
+    active: dev
+
+  ai:
+    mcp:
+      server:
+        name: spring-ai-mcp-server-sse
+        version: 1.0.0
+        sse-endpoint: /sse
+        type: async
+  mail:
+    host: smtp.163.com               # 邮箱host
+    port: 465                      # 邮箱固定端口
+    username: 13363581668@163.com
+    password: JVRwT5kX6FtrJqXW
+    protocol: smtp                  # 邮箱协议
+    default-encoding: UTF-8         # 默认编码
+    properties:
+      mail:
+        smtp:
+          socketFactory:
+            port: 465
+            class: javax.net.ssl.SSLSocketFactory
+          ssl:
+            enable: true
+
+logging:
+  level:
+    root: info
+
+
+# MyBatisPlus 的配置
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      id-type: assign_id
+      update-strategy: not_empty
+  mapper-locations: classpath*:/mappers/*.xml

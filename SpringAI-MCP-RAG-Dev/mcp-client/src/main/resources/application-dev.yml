@@ -1,0 +1,36 @@
+server:
+  port: 9090
+
+website:
+  domain: http://192.168.0.4:5501
+
+spring:
+  ai:
+#        mcp:
+#          client:
+#            enabled: true
+#            name: spring-ai-mcp-client
+#            type: ASYNC
+#            sse:
+#              connections:
+#                server1:
+#                  url: https://mcp.amap.com
+#                  sse-endpoint: /sse?key=298cd53c33d25010d46d6568da77bd75
+#                server2:
+#                  url: http://localhost:9060
+#                  sse-endpoint: /sse
+#            stdio:
+#              servers-configuration: classpath:mcp-server.json
+
+  data:
+    redis:
+      host: 127.0.0.1
+      port: 9379
+      password: root
+
+
+internet:
+  websearch:
+    searxng:
+      url: http://localhost:6080/search
+      counts: 10

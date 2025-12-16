@@ -1,0 +1,325 @@
+以下是为"Spring AI MCP服务HRAG知识库 实战"页面设计的高端美化提示词，延续深空灰(#0F172A) + 鎏金(#D4AF37) + 羊皮纸白(#F8F5F0)的奢华风格，结合"古籍秘阁"概念：
+
+设计概念
+prompt
+打造"天工开物"式知识检索体验，将古籍藏书阁与现代AI技术融合：
+1. 核心隐喻：知识库=皇家秘阁，搜索=星象推演
+2. 设计语言：新中式科技风
+3. 材质系统：
+   - 背景：动态星图(#0F172A) + 鎏金星轨
+   - 面板：羊皮纸卷轴 + 青铜镶边
+   - 交互：占星罗盘元素
+页面结构设计
+prompt
+1. 头部导航：
+   - 左侧：青铜简牍造型标题"Spring AI MCP服务HRAG知识库 实战"
+   - 右侧：八卦导航菜单（历史/收藏/设置）
+
+2. 主功能区：
+   - 搜索区：星盘造型输入框
+   - 结果区：悬浮竹简展示架
+   - 操作区：青铜器造型控制面板
+
+3. 状态指示区：
+   - 文件上传：青铜鼎造型上传区
+   - 系统提示：龟甲占卜式状态卡
+视觉规范
+搜索区设计
+prompt
+1. 标题设计：
+   - "畅销搜索" → "星象推演"
+   - 字体：篆书鎏金字 + 青铜底纹
+
+2. 搜索输入框：
+   - 造型：砚台形凹槽
+   - 占位符："请输入内容..." → "以天机为墨，书所求之事..."
+   - 特效：输入时底部浮现星图轨迹
+
+3. 搜索按钮：
+   - 造型：青铜司南指针
+   - 状态：未输入时指向随机方位，输入后指向搜索结果方位
+结果展示区
+prompt
+1. 结果容器：
+   - 造型：悬浮竹简卷轴
+   - 展开特效：点击后如古卷展开，浮现鎏金批注
+
+2. 内容展示：
+   - 标题：金文篆刻样式
+   - 摘要：竖排仿刻本字体
+   - 元数据：青铜简牍标签（日期/来源）
+
+3. 交互特效：
+   - 悬停：竹简边缘泛起鎏金光晕
+   - 选中：卷轴自动卷起加青铜镇纸
+文件上传区
+prompt
+1. 主容器：
+   - 造型：三足青铜鼎
+   - 状态：鼎内鎏金液体表示上传进度
+   - 提示："投简入鼎，可窥天机"
+
+2. 操作说明：
+   - "通过文档 查看主卡" → 玉琮造型按钮
+   - 格式提示："玉牍规制：HCA文书，百钱之重(100KB)"
+动效系统
+prompt
+1. 搜索过程：
+   - 输入时：星盘符文依次亮起
+   - 搜索中：青铜司南旋转定位
+   - 结果返回：竹简从鼎中升起
+
+2. 文件上传：
+   - 拖入文件：鼎内升起青烟
+   - 上传中：鼎内鎏金液体上涨
+   - 完成：鼎身发出金光
+响应式方案
+prompt
+1. 桌面端：
+   - 三栏布局：导航(20%) + 搜索(30%) + 结果(50%)
+   - 青铜鼎固定于右下角
+
+2. 平板端：
+   - 垂直布局：搜索区在上，结果区在下
+   - 青铜鼎转为青铜简牍造型
+
+3. 移动端：
+   - 全屏星图模式
+   - 搜索框收缩为罗盘中心
+   - 结果以龟甲卡片呈现
+代码实现提示
+html
+<!-- 星盘搜索区 -->
+<div class="star-chart-search">
+  <div class="bronze-plaque">
+    <h2 class="seal-script">星象推演</h2>
+  </div>
+  
+  <!-- 砚台输入框 -->
+  <div class="inkstone-input">
+    <input 
+      type="text" 
+      placeholder="以天机为墨，书所求之事..."
+      v-model="searchQuery"
+    >
+    <div class="star-trail"></div>
+  </div>
+  
+  <!-- 司南搜索按钮 -->
+  <button class="compass-btn" @click="search">
+    <div class="needle" :style="{transform: `rotate(${needleAngle}deg)`}"></div>
+  </button>
+</div>
+
+<!-- 竹简结果区 -->
+<div class="bamboo-scroll-results">
+  <div 
+    v-for="result in results" 
+    class="scroll-item"
+    @click="toggleScroll(result.id)"
+  >
+    <div class="scroll-header">
+      <h3 class="gold-title">{{ result.title }}</h3>
+      <div class="bronze-tag">{{ result.date }}</div>
+    </div>
+    <div class="scroll-content" v-show="result.expanded">
+      <p>{{ result.summary }}</p>
+    </div>
+  </div>
+</div>
+
+<!-- 青铜鼎上传区 -->
+<div class="bronze-cauldron-upload">
+  <div class="cauldron">
+    <div class="liquid-fill" :style="{height: uploadProgress + '%'}"></div>
+  </div>
+  <p>投简入鼎，可窥天机</p>
+  <button class="jade-button">查看主卡</button>
+  <small>玉牍规制：HCA文书，百钱之重(100KB)</small>
+</div>
+css
+/* 星盘搜索区 */
+.star-chart-search {
+  background: url('star-chart-bg.svg') no-repeat center;
+  background-size: contain;
+  padding: 30px;
+  position: relative;
+}
+
+.bronze-plaque {
+  background: url('bronze-texture.jpg');
+  border: 2px solid #5D4037;
+  padding: 15px;
+  text-align: center;
+}
+
+.seal-script {
+  font-family: "汉仪金文体", serif;
+  color: #D4AF37;
+  text-shadow: 0 0 5px rgba(212, 175, 55, 0.5);
+}
+
+/* 砚台输入框 */
+.inkstone-input {
+  background: url('inkstone.svg') no-repeat center;
+  background-size: contain;
+  height: 60px;
+  margin: 20px 0;
+  position: relative;
+}
+
+.inkstone-input input {
+  background: transparent;
+  border: none;
+  width: 80%;
+  height: 100%;
+  margin: 0 auto;
+  display: block;
+  text-align: center;
+  font-family: "方正清刻本悦宋";
+  color: #F8F5F0;
+  font-size: 18px;
+}
+
+.star-trail {
+  position: absolute;
+  bottom: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #D4AF37, transparent);
+  transition: width 0.3s ease;
+}
+
+/* 司南按钮 */
+.compass-btn {
+  width: 80px;
+  height: 80px;
+  background: url('compass-base.svg');
+  position: relative;
+  border: none;
+}
+
+.needle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 60px;
+  height: 3px;
+  background: #D4AF37;
+  transform-origin: left center;
+  transition: transform 1s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* 竹简结果 */
+.bamboo-scroll-results {
+  display: grid;
+  gap: 15px;
+  margin-top: 30px;
+}
+
+.scroll-item {
+  background: 
+    linear-gradient(to right, #5D4037, #3E2723, #5D4037),
+    url('parchment-texture.jpg');
+  border-left: 4px solid #D4AF37;
+  padding: 15px;
+  cursor: pointer;
+  transition: all 0.4s ease;
+}
+
+.scroll-item:hover {
+  box-shadow: 0 0 20px rgba(212, 175, 55, 0.3);
+}
+
+.gold-title {
+  font-family: "汉仪玄宋", serif;
+  color: #D4AF37;
+  margin-bottom: 10px;
+}
+
+.bronze-tag {
+  display: inline-block;
+  background: #5D4037;
+  color: #F8F5F0;
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-size: 12px;
+}
+
+.scroll-content {
+  border-top: 1px dashed #D4AF37;
+  padding-top: 10px;
+  font-family: "霞鹜文楷", serif;
+  color: #F8F5F0;
+}
+
+/* 青铜鼎上传 */
+.bronze-cauldron-upload {
+  text-align: center;
+  margin-top: 40px;
+}
+
+.cauldron {
+  width: 120px;
+  height: 100px;
+  background: url('cauldron.svg') no-repeat center;
+  background-size: contain;
+  margin: 0 auto 15px;
+  position: relative;
+}
+
+.liquid-fill {
+  position: absolute;
+  bottom: 15px;
+  left: 30%;
+  width: 40%;
+  background: linear-gradient(to top, #D4AF37, #F9E076);
+  transition: height 0.5s ease;
+}
+
+.jade-button {
+  background: linear-gradient(to bottom, #389E8A, #2A7D6F);
+  color: #F8F5F0;
+  border: none;
+  padding: 8px 20px;
+  border-radius: 20px;
+  font-family: "汉仪金文体";
+  margin: 10px 0;
+}
+动效实现
+javascript
+// 搜索司南指向动画
+function updateCompassNeedle(angle) {
+  const needle = document.querySelector('.needle');
+  needle.style.transform = `rotate(${angle}deg)`;
+}
+
+// 文件上传动画
+function updateUploadProgress(percent) {
+  const liquid = document.querySelector('.liquid-fill');
+  liquid.style.height = `${percent}%`;
+  
+  if(percent >= 100) {
+    document.querySelector('.cauldron').classList.add('glow');
+  }
+}
+
+// 竹简展开效果
+function toggleScroll(id) {
+  const scroll = document.querySelector(`#scroll-${id}`);
+  scroll.classList.toggle('expanded');
+}
+品牌增强
+prompt
+1. 空状态：
+   - 无结果："此卦未明，请易辞再占"
+   - 未搜索："静候天机，可投简问卦"
+   
+2. 加载状态：
+   - 文本："河图推演中..."
+   - 动画：洛书九宫格填充
+
+3. 交互反馈：
+   - 文件超限："玉牍超重，请择要而传"
+   - 格式错误："非礼勿呈，请献HCA文书"
+此设计将知识库搜索转化为充满仪式感的"占星问卦"体验，通过青铜器与星象元素的结合，既保留专业感又增添神秘色彩。竹简结果展示与青铜鼎上传控件的设计，完美呼应古籍主题，同时提供直观的交互反馈。
+

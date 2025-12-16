@@ -1,0 +1,27 @@
+spring:
+  application:
+    name: spring-ai-mcp-client
+  profiles:
+    active: dev
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY}
+      base-url: ${OPENAI_BASE_URL}
+      chat:
+        options:
+          model: ${OPENAI_MODEL}
+    vectorstore:
+      redis:
+        initialize-schema: true         # 是否初始化所需的模式
+        index-name: lee-vectorstore     # 用于存储向量的索引名称
+        prefix: 'embedding:'             # Redis 键的前缀
+
+logging:
+  level:
+    root: info
+
+internet:
+  websearch:
+    searxng:
+      url: http://localhost:6080/search
+      counts: 10

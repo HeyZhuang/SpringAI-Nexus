@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MCP & RAG 知识冒险</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        .game-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 800px;
+            width: 90%;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        h1 {
+            text-align: center;
+            color: #764ba2;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        #gameCanvas {
+            width: 100%;
+            height: 400px;
+            border: 3px solid #764ba2;
+            border-radius: 15px;
+            display: block;
+            background: white;
+            cursor: pointer;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+            color: white;
+            font-weight: bold;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .stat-icon {
+            font-size: 1.5em;
+        }
+
+        .question-modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 50px rgba(0,0,0,0.3);
+            max-width: 600px;
+            width: 90%;
+            display: none;
+            z-index: 1000;
+            animation: modalPop 0.3s ease-out;
+        }
+
+        @keyframes modalPop {
+            0% {
+                transform: translate(-50%, -50%) scale(0.8);
+                opacity: 0;
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 1;
+            }
+        }
+
+        .question-modal.active {
+            display: block;
+        }
+
+        .question-text {
+            font-size: 1.3em;
+            color: #333;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .answers {
+            display: grid;
+            gap: 10px;
+        }
+
+        .answer-btn {
+            padding: 15px;
+            border: 2px solid #667eea;
+            background: white;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1em;
+            text-align: left;
+        }
+
+        .answer-btn:hover {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            transform: translateX(5px);
+        }
+
+        .answer-btn.correct {
+            background: #4caf50;
+            color: white;
+            border-color: #4caf50;
+        }
+
+        .answer-btn.wrong {
+            background: #f44336;
+            color: white;
+            border-color: #f44336;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: none;
+            z-index: 999;
+        }
+
+        .overlay.active {
+            display: block;
+        }
+
+        .start-screen {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .start-btn {
+            padding: 15px 40px;
+            font-size: 1.3em;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            margin-top: 20px;
+        }
+
+        .start-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .game-over {
+            text-align: center;
+            padding: 30px;
+            display: none;
+        }
+
+        .game-over.active {
+            display: block;
+        }
+
+        .final-score {
+            font-size: 2em;
+            color: #764ba2;
+            margin: 20px 0;
+        }
+
+        .knowledge-fact {
+            background: #f0f0f0;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            color: #555;
+            line-height: 1.6;
+        }
+
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+    </style>
+</head>
+<body>
+    <canvas class="particles" id="particlesCanvas"></canvas>
+
+    <div class="game-container">
+        <h1>🚀 MCP & RAG 知识冒险</h1>
+        <p class="subtitle">在游戏中学习Model Context Protocol和Retrieval-Augmented Generation!</p>
+
+        <div id="startScreen" class="start-screen">
+            <h2>欢迎来到知识冒险世界！</h2>
+            <p style="margin: 20px 0; color: #666; line-height: 1.8;">
+                控制你的角色收集知识宝石，每个宝石都包含一个关于MCP或RAG的问题。<br>
+                回答正确获得分数，回答错误会失去生命值！<br>
+                使用方向键或WASD控制移动
+            </p>
+            <button class="start-btn" onclick="startGame()">开始游戏</button>
+        </div>
+
+        <canvas id="gameCanvas" style="display: none;"></canvas>
+
+        <div class="stats" id="gameStats" style="display: none;">
+            <div class="stat-item">
+                <span class="stat-icon">💎</span>
+                <span>得分: <span id="score">0</span></span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-icon">❤️</span>
+                <span>生命: <span id="lives">3</span></span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-icon">🎯</span>
+                <span>正确率: <span id="accuracy">0</span>%</span>
+            </div>
+        </div>
+
+        <div id="gameOver" class="game-over">
+            <h2>游戏结束！</h2>
+            <p class="final-score">最终得分: <span id="finalScore">0</span></p>
+            <p>你已经成为了MCP和RAG知识大师！</p>
+            <button class="start-btn" onclick="resetGame()">再玩一次</button>
+        </div>
+    </div>
+
+    <div class="overlay" id="overlay"></div>
+
+    <div class="question-modal" id="questionModal">
+        <h3 style="color: #764ba2; margin-bottom: 15px;">💡 知识挑战</h3>
+        <p class="question-text" id="questionText"></p>
+        <div class="answers" id="answersContainer"></div>
+        <div class="knowledge-fact" id="knowledgeFact" style="display: none;"></div>
+    </div>
+
+    <script>
+        // 游戏配置
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = 740;
+        canvas.height = 400;
+
+        // 游戏状态
+        let gameState = {
+            player: {
+                x: canvas.width / 2,
+                y: canvas.height / 2,
+                size: 20,
+                speed: 5,
+                color: '#764ba2'
+            },
+            gems: [],
+            particles: [],
+            score: 0,
+            lives: 3,
+            totalQuestions: 0,
+            correctAnswers: 0,
+            isPlaying: false,
+            keys: {}
+        };
+
+        // MCP和RAG问题库
+        const questions = [
+            {
+                question: "MCP (Model Context Protocol) 的主要作用是什么？",
+                answers: [
+                    "让AI模型与外部工具和数据源进行标准化交互",
+                    "提高模型的训练速度",
+                    "减少模型的参数量",
+                    "优化模型的内存使用"
+                ],
+                correct: 0,
+                fact: "MCP是Anthropic开发的开放协议，允许AI助手与各种外部系统进行无缝集成，如数据库、API和开发工具。"
+            },
+            {
+                question: "RAG (Retrieval-Augmented Generation) 技术解决了什么问题？",
+                answers: [
+                    "模型训练时间过长",
+                    "模型知识的时效性和准确性问题",
+                    "模型体积过大",
+                    "模型推理速度慢"
+                ],
+                correct: 1,
+                fact: "RAG通过检索外部知识库来增强生成内容的准确性和时效性，让AI能够访问最新的信息。"
+            },
+            {
+                question: "MCP服务器可以提供哪些类型的资源？",
+                answers: [
+                    "仅文本数据",
+                    "仅API接口",
+                    "工具调用、数据访问和提示模板",
+                    "仅数据库连接"
+                ],
+                correct: 2,
+                fact: "MCP服务器可以暴露三种核心资源：工具（可执行函数）、资源（数据访问）和提示模板。"
+            },
+            {
+                question: "RAG系统中的向量数据库主要用于什么？",
+                answers: [
+                    "存储原始文本",
+                    "存储和检索语义相似的文档片段",
+                    "训练模型",
+                    "缓存查询结果"
+                ],
+                correct: 1,
+                fact: "向量数据库将文本转换为高维向量，实现基于语义相似度的快速检索。"
+            },
+            {
+                question: "Spring AI中集成MCP的主要优势是什么？",
+                answers: [
+                    "自动生成代码",
+                    "简化AI应用与外部系统的集成",
+                    "提高代码运行速度",
+                    "减少内存占用"
+                ],
+                correct: 1,
+                fact: "Spring AI的MCP集成让Java开发者能够轻松构建可扩展的AI应用，无缝连接各种数据源和服务。"
+            },
+            {
+                question: "RAG中的'检索'步骤通常使用什么技术？",
+                answers: [
+                    "关键词匹配",
+                    "正则表达式",
+                    "语义向量相似度搜索",
+                    "SQL查询"
+                ],
+                correct: 2,
+                fact: "RAG使用embedding技术将查询和文档转换为向量，通过计算余弦相似度找到最相关的内容。"
+            },
+            {
+                question: "MCP协议支持哪种通信方式？",
+                answers: [
+                    "仅HTTP",
+                    "仅WebSocket",
+                    "JSON-RPC over stdio或HTTP",
+                    "仅gRPC"
+                ],
+                correct: 2,
+                fact: "MCP使用JSON-RPC 2.0协议，可以通过stdio（标准输入输出）或HTTP进行通信。"
+            },
+            {
+                question: "在RAG系统中，chunk（分块）的目的是什么？",
+                answers: [
+                    "压缩数据",
+                    "将长文档分割成适合检索的小片段",
+                    "加密数据",
+                    "格式化输出"
+                ],
+                correct: 1,
+                fact: "分块确保检索到的内容既包含足够的上下文，又不会超出模型的token限制。"
+            },
+            {
+                question: "MCP客户端和服务器之间的会话是如何建立的？",
+                answers: [
+                    "通过OAuth认证",
+                    "通过初始化握手和能力协商",
+                    "通过API密钥",
+                    "通过用户名密码"
+                ],
+                correct: 1,
+                fact: "MCP使用initialize请求进行握手，客户端和服务器交换各自支持的能力。"
+            },
+            {
+                question: "RAG相比fine-tuning（微调）的优势是什么？",
+                answers: [
+                    "计算成本更低，知识更新更灵活",
+                    "模型性能更好",
+                    "推理速度更快",
+                    "模型体积更小"
+                ],
+                correct: 0,
+                fact: "RAG无需重新训练模型即可更新知识，而微调需要大量计算资源和时间。"
+            }
+        ];
+
+        // 宝石类
+        class Gem {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.size = 15;
+                this.color = `hsl(${Math.random() * 60 + 180}, 70%, 60%)`;
+                this.rotation = 0;
+                this.collected = false;
+                this.question = questions[Math.floor(Math.random() * questions.length)];
+            }
+
+            update() {
+                this.rotation += 0.05;
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.rotation);
+
+                // 绘制六边形宝石
+                ctx.beginPath();
+                for (let i = 0; i < 6; i++) {
+                    const angle = (Math.PI / 3) * i;
+                    const x = this.size * Math.cos(angle);
+                    const y = this.size * Math.sin(angle);
+                    if (i === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                }
+                ctx.closePath();
+
+                ctx.fillStyle = this.color;
+                ctx.fill();
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                ctx.restore();
+            }
+        }
+
+        // 粒子类
+        class Particle {
+            constructor(x, y, color) {
+                this.x = x;
+                this.y = y;
+                this.vx = (Math.random() - 0.5) * 4;
+                this.vy = (Math.random() - 0.5) * 4;
+                this.size = Math.random() * 5 + 2;
+                this.color = color;
+                this.life = 1;
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.life -= 0.02;
+                this.size *= 0.98;
+            }
+
+            draw() {
+                ctx.globalAlpha = this.life;
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.globalAlpha = 1;
+            }
+        }
+
+        // 创建宝石
+        function createGem() {
+            const margin = 50;
+            const x = Math.random() * (canvas.width - margin * 2) + margin;
+            const y = Math.random() * (canvas.height - margin * 2) + margin;
+            gameState.gems.push(new Gem(x, y));
+        }
+
+        // 创建粒子效果
+        function createParticles(x, y, color, count = 10) {
+            for (let i = 0; i < count; i++) {
+                gameState.particles.push(new Particle(x, y, color));
+            }
+        }
+
+        // 检查碰撞
+        function checkCollision(obj1, obj2, dist) {
+            const dx = obj1.x - obj2.x;
+            const dy = obj1.y - obj2.y;
+            return Math.sqrt(dx * dx + dy * dy) < dist;
+        }
+
+        // 显示问题
+        function showQuestion(gem) {
+            const modal = document.getElementById('questionModal');
+            const overlay = document.getElementById('overlay');
+            const questionText = document.getElementById('questionText');
+            const answersContainer = document.getElementById('answersContainer');
+            const knowledgeFact = document.getElementById('knowledgeFact');
+
+            questionText.textContent = gem.question.question;
+            answersContainer.innerHTML = '';
+            knowledgeFact.style.display = 'none';
+
+            gem.question.answers.forEach((answer, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'answer-btn';
+                btn.textContent = answer;
+                btn.onclick = () => {
+                    // 禁用所有按钮
+                    const allBtns = answersContainer.querySelectorAll('.answer-btn');
+                    allBtns.forEach(b => b.style.pointerEvents = 'none');
+
+                    if (index === gem.question.correct) {
+                        btn.classList.add('correct');
+                        gameState.score += 100;
+                        gameState.correctAnswers++;
+                        createParticles(gameState.player.x, gameState.player.y, '#4caf50', 20);
+                    } else {
+                        btn.classList.add('wrong');
+                        allBtns[gem.question.correct].classList.add('correct');
+                        gameState.lives--;
+                        createParticles(gameState.player.x, gameState.player.y, '#f44336', 20);
+                    }
+
+                    gameState.totalQuestions++;
+                    updateStats();
+
+                    // 显示知识点
+                    knowledgeFact.style.display = 'block';
+                    knowledgeFact.innerHTML = `<strong>💡 知识点:</strong> ${gem.question.fact}`;
+
+                    setTimeout(() => {
+                        modal.classList.remove('active');
+                        overlay.classList.remove('active');
+
+                        if (gameState.lives <= 0) {
+                            endGame();
+                        }
+                    }, 3000);
+                };
+                answersContainer.appendChild(btn);
+            });
+
+            modal.classList.add('active');
+            overlay.classList.add('active');
+        }
+
+        // 更新统计
+        function updateStats() {
+            document.getElementById('score').textContent = gameState.score;
+            document.getElementById('lives').textContent = gameState.lives;
+            const accuracy = gameState.totalQuestions > 0
+                ? Math.round((gameState.correctAnswers / gameState.totalQuestions) * 100)
+                : 0;
+            document.getElementById('accuracy').textContent = accuracy;
+        }
+
+        // 游戏主循环
+        function gameLoop() {
+            if (!gameState.isPlaying) return;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // 绘制网格背景
+            ctx.strokeStyle = 'rgba(118, 75, 162, 0.1)';
+            ctx.lineWidth = 1;
+            for (let i = 0; i < canvas.width; i += 40) {
+                ctx.beginPath();
+                ctx.moveTo(i, 0);
+                ctx.lineTo(i, canvas.height);
+                ctx.stroke();
+            }
+            for (let i = 0; i < canvas.height; i += 40) {
+                ctx.beginPath();
+                ctx.moveTo(0, i);
+                ctx.lineTo(canvas.width, i);
+                ctx.stroke();
+            }
+
+            // 更新玩家位置
+            if (gameState.keys['ArrowUp'] || gameState.keys['w']) {
+                gameState.player.y = Math.max(gameState.player.size, gameState.player.y - gameState.player.speed);
+            }
+            if (gameState.keys['ArrowDown'] || gameState.keys['s']) {
+                gameState.player.y = Math.min(canvas.height - gameState.player.size, gameState.player.y + gameState.player.speed);
+            }
+            if (gameState.keys['ArrowLeft'] || gameState.keys['a']) {
+                gameState.player.x = Math.max(gameState.player.size, gameState.player.x - gameState.player.speed);
+            }
+            if (gameState.keys['ArrowRight'] || gameState.keys['d']) {
+                gameState.player.x = Math.min(canvas.width - gameState.player.size, gameState.player.x + gameState.player.speed);
+            }
+
+            // 绘制玩家
+            ctx.beginPath();
+            ctx.arc(gameState.player.x, gameState.player.y, gameState.player.size, 0, Math.PI * 2);
+            ctx.fillStyle = gameState.player.color;
+            ctx.fill();
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+
+            // 绘制玩家的光晕效果
+            ctx.beginPath();
+            ctx.arc(gameState.player.x, gameState.player.y, gameState.player.size + 5, 0, Math.PI * 2);
+            ctx.strokeStyle = 'rgba(118, 75, 162, 0.3)';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // 更新和绘制宝石
+            gameState.gems = gameState.gems.filter(gem => {
+                if (gem.collected) return false;
+
+                gem.update();
+                gem.draw();
+
+                // 检查碰撞
+                if (checkCollision(gameState.player, gem, gameState.player.size + gem.size)) {
+                    gem.collected = true;
+                    showQuestion(gem);
+                    return false;
+                }
+
+                return true;
+            });
+
+            // 更新和绘制粒子
+            gameState.particles = gameState.particles.filter(particle => {
+                particle.update();
+                particle.draw();
+                return particle.life > 0;
+            });
+
+            // 生成新宝石
+            if (gameState.gems.length < 3 && Math.random() < 0.02) {
+                createGem();
+            }
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        // 开始游戏
+        function startGame() {
+            document.getElementById('startScreen').style.display = 'none';
+            document.getElementById('gameCanvas').style.display = 'block';
+            document.getElementById('gameStats').style.display = 'flex';
+
+            gameState.isPlaying = true;
+            gameState.score = 0;
+            gameState.lives = 3;
+            gameState.totalQuestions = 0;
+            gameState.correctAnswers = 0;
+
+            // 创建初始宝石
+            for (let i = 0; i < 3; i++) {
+                createGem();
+            }
+
+            updateStats();
+            gameLoop();
+        }
+
+        // 结束游戏
+        function endGame() {
+            gameState.isPlaying = false;
+            document.getElementById('gameCanvas').style.display = 'none';
+            document.getElementById('gameStats').style.display = 'none';
+            document.getElementById('gameOver').classList.add('active');
+            document.getElementById('finalScore').textContent = gameState.score;
+        }
+
+        // 重置游戏
+        function resetGame() {
+            document.getElementById('gameOver').classList.remove('active');
+            gameState.gems = [];
+            gameState.particles = [];
+            gameState.player.x = canvas.width / 2;
+            gameState.player.y = canvas.height / 2;
+            startGame();
+        }
+
+        // 键盘事件
+        document.addEventListener('keydown', (e) => {
+            gameState.keys[e.key] = true;
+        });
+
+        document.addEventListener('keyup', (e) => {
+            gameState.keys[e.key] = false;
+        });
+
+        // 背景粒子动画
+        const particlesCanvas = document.getElementById('particlesCanvas');
+        const pCtx = particlesCanvas.getContext('2d');
+        particlesCanvas.width = window.innerWidth;
+        particlesCanvas.height = window.innerHeight;
+
+        const backgroundParticles = [];
+        for (let i = 0; i < 50; i++) {
+            backgroundParticles.push({
+                x: Math.random() * particlesCanvas.width,
+                y: Math.random() * particlesCanvas.height,
+                size: Math.random() * 3 + 1,
+                speedX: (Math.random() - 0.5) * 0.5,
+                speedY: (Math.random() - 0.5) * 0.5
+            });
+        }
+
+        function animateBackground() {
+            pCtx.clearRect(0, 0, particlesCanvas.width, particlesCanvas.height);
+
+            backgroundParticles.forEach(p => {
+                p.x += p.speedX;
+                p.y += p.speedY;
+
+                if (p.x < 0) p.x = particlesCanvas.width;
+                if (p.x > particlesCanvas.width) p.x = 0;
+                if (p.y < 0) p.y = particlesCanvas.height;
+                if (p.y > particlesCanvas.height) p.y = 0;
+
+                pCtx.beginPath();
+                pCtx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                pCtx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+                pCtx.fill();
+            });
+
+            requestAnimationFrame(animateBackground);
+        }
+
+        animateBackground();
+
+        // 窗口大小调整
+        window.addEventListener('resize', () => {
+            particlesCanvas.width = window.innerWidth;
+            particlesCanvas.height = window.innerHeight;
+        });
+    </script>
+</body>
+</html>
